@@ -1,6 +1,6 @@
 
 using CodeProject.Server.Context;
-using CodeProject.Server.Models;
+using CodeProject.Server.Models.Mappings;
 using CodeProject.Server.Providers;
 using Microsoft.EntityFrameworkCore;
 namespace CodeProject.Server

@@ -2,6 +2,8 @@
 
 #nullable disable
 
+#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
+
 namespace CodeProject.Server.Migrations
 {
     /// <inheritdoc />
@@ -42,6 +44,15 @@ namespace CodeProject.Server.Migrations
                         principalTable: "Providers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.InsertData(
+                table: "Providers",
+                columns: new[] { "Id", "Name" },
+                values: new object[,]
+                {
+                    { 1, "home" },
+                    { 2, "office" }
                 });
 
             migrationBuilder.CreateIndex(

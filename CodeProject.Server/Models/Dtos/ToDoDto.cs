@@ -1,6 +1,6 @@
 ﻿using Microsoft.Identity.Client;
 
-namespace CodeProject.Server.Models
+namespace CodeProject.Server.Models.Dtos
 {
     public class ToDoDto
     {

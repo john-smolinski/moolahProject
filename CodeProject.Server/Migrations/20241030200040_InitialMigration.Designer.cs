@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CodeProject.Server.Migrations
 {
     [DbContext(typeof(MoolahContext))]
-    [Migration("20241029215450_InitialMigration")]
+    [Migration("20241030200040_InitialMigration")]
     partial class InitialMigration
     {
         /// <inheritdoc />
@@ -24,7 +24,7 @@ namespace CodeProject.Server.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("CodeProject.Server.Models.Provider", b =>
+            modelBuilder.Entity("CodeProject.Server.Models.Entities.Provider", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -43,9 +43,21 @@ namespace CodeProject.Server.Migrations
                         .IsUnique();
 
                     b.ToTable("Providers");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Name = "home"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Name = "office"
+                        });
                 });
 
-            modelBuilder.Entity("CodeProject.Server.Models.ToDo", b =>
+            modelBuilder.Entity("CodeProject.Server.Models.Entities.ToDo", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -73,9 +85,9 @@ namespace CodeProject.Server.Migrations
                     b.ToTable("ToDos");
                 });
 
-            modelBuilder.Entity("CodeProject.Server.Models.ToDo", b =>
+            modelBuilder.Entity("CodeProject.Server.Models.Entities.ToDo", b =>
                 {
-                    b.HasOne("CodeProject.Server.Models.Provider", "Provider")
+                    b.HasOne("CodeProject.Server.Models.Entities.Provider", "Provider")
                         .WithMany("ToDos")
                         .HasForeignKey("ProviderId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -84,7 +96,7 @@ namespace CodeProject.Server.Migrations
                     b.Navigation("Provider");
                 });
 
-            modelBuilder.Entity("CodeProject.Server.Models.Provider", b =>
+            modelBuilder.Entity("CodeProject.Server.Models.Entities.Provider", b =>
                 {
                     b.Navigation("ToDos");
                 });

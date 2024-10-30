@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace CodeProject.Server.Models
+namespace CodeProject.Server.Models.Entities
 {
 #pragma warning disable CS8618
     public class ToDo

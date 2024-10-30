@@ -1,5 +1,6 @@
 ﻿using CodeProject.Server.Context;
 using CodeProject.Server.Models;
+using CodeProject.Server.Models.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace CodeProject.Server.Providers

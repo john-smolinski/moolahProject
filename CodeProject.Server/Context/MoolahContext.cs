@@ -1,4 +1,4 @@
-﻿using CodeProject.Server.Models;
+﻿using CodeProject.Server.Models.Entities;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
 
@@ -18,6 +18,12 @@ namespace CodeProject.Server.Context
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
+
+            modelBuilder.Entity<Provider>().HasData(
+                new Provider { Id = 1, Name = "home" },
+                new Provider { Id = 2, Name = "office" });
+
+
         }
     }
 }

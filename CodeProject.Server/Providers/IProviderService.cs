@@ -1,4 +1,5 @@
 ﻿using CodeProject.Server.Models;
+using CodeProject.Server.Models.Entities;
 
 namespace CodeProject.Server.Providers
 {
