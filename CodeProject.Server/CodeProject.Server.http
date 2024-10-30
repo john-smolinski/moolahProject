@@ -1,0 +1,6 @@
+@CodeProject.Server_HostAddress = http://localhost:5083
+
+GET {{CodeProject.Server_HostAddress}}/todo/
+Accept: application/json
+
+###
