@@ -1,4 +1,5 @@
-﻿using CodeProject.Server.Context;
+﻿using AutoMapper;
+using CodeProject.Server.Context;
 using CodeProject.Server.Models;
 using CodeProject.Server.Providers;
 using Microsoft.AspNetCore.Mvc;
@@ -11,125 +12,81 @@ namespace CodeProject.Server.Controllers
     {
         private readonly ProviderFactory _providerFactory;
         private readonly MoolahContext _context;
-        
-        public ToDosController(ProviderFactory providerFactory, MoolahContext context)
+        private readonly IMapper _mapper;
+
+        public ToDosController(ProviderFactory providerFactory, MoolahContext context, IMapper mapper)
         {
             _providerFactory = providerFactory;
             _context = context;
+            _mapper = mapper;
         }
 
+        [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [HttpGet("search")]
-        public async Task<ActionResult<IEnumerable<ToDo>>> SearchToDo([FromQuery] ToDoSearchParams searchParams)
+        public async Task<ActionResult<IEnumerable<ToDoDto>>> SearchToDo([FromQuery] ToDoSearchParams searchParams)
         {
             if (searchParams == null || string.IsNullOrEmpty(searchParams.Provider))
             {
                 return BadRequest();
             }
             if (searchParams.Provider != "home" && searchParams.Provider != "office")
-            { 
+            {
                 return BadRequest();
             }
 
             var service = _providerFactory.GetToDoService(searchParams.Provider);
-            var result = await service.Search(searchParams);
+            var toDos = await service.Search(searchParams);
 
-            if (result.Count == 0)
+            if (toDos == null || !toDos.Any())
             {
                 return NotFound();
             }
-            return result;
+            var toDosDto = _mapper.Map<IEnumerable<ToDoDto>>(toDos);
+
+            return Ok(toDosDto);
         }
 
-
-
-
-
-
-
-        
-        //// PUT: api/ToDos/5
-        //// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        //[HttpPut("{id}")]
-        //public async Task<IActionResult> PutToDo(int id, ToDo toDo)
-        //{
-        //    if (id != toDo.Id)
-        //    {
-        //        return BadRequest();
-        //    }
-
-        //    _context.Entry(toDo).State = EntityState.Modified;
-
-        //    try
-        //    {
-        //        await _context.SaveChangesAsync();
-        //    }
-        //    catch (DbUpdateConcurrencyException)
-        //    {
-        //        if (!ToDoExists(id))
-        //        {
-        //            return NotFound();
-        //        }
-        //        else
-        //        {
-        //            throw;
-        //        }
-        //    }
-
-        //    return NoContent();
-        //}
-
-        // POST: api/ToDos
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        //[HttpPost]
-        //public async Task<ActionResult<ToDo>> PostToDo(ToDo toDo)
-        //{
-        //    _context.ToDos.Add(toDo);
-        //    try
-        //    {
-        //        await _context.SaveChangesAsync();
-        //    }
-        //    catch (DbUpdateException)
-        //    {
-        //        if (ToDoExists(toDo.Id))
-        //        {
-        //            return Conflict();
-        //        }
-        //        else
-        //        {
-        //            throw;
-        //        }
-        //    }
-
-        //    return CreatedAtAction("GetToDo", new { id = toDo.Id }, toDo);
-        //}
-
-        // DELETE: api/ToDos/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteToDo(int id)
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [HttpPost]
+        public async Task<ActionResult<ToDo>> PostToDo([FromBody] ToDo toDo)
         {
-            var toDo = await _context.ToDos.FindAsync(id);
-            if (toDo == null)
+            if(toDo == null)
             {
-                return NotFound();
+                return BadRequest(new ErrorResponse
+                {
+                    Message = "Invalid request",
+                    StatusCode = 400,
+                    Detail = "Request body null"
+                });
             }
+            if(string.IsNullOrEmpty(toDo.Name) || string.IsNullOrEmpty(toDo.Description))
+            {
+                return BadRequest(new ErrorResponse
+                {
+                    Message = "Invalid request",
+                    StatusCode = 400,
+                    Detail = "Name and Description required"
+                });
+            }
+            var service = _providerFactory.GetToDoService(toDo.Provider.Name);
 
-            _context.ToDos.Remove(toDo);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            try
+            {
+                await service.Add(toDo);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ErrorResponse
+                {
+                    Message = "A unhandled exception occurred",
+                    StatusCode = 500,
+                    Detail = ex.Message
+                });
+            }
+            return CreatedAtAction("GetToDo", new { id = toDo.Id }, toDo);
         }
-
-        private bool ToDoExists(int id)
-        {
-            return _context.ToDos.Any(e => e.Id == id);
-        }
-        
-
-       
-
-
-
     }
 }

@@ -1,5 +1,6 @@
 
 using CodeProject.Server.Context;
+using CodeProject.Server.Models;
 using CodeProject.Server.Providers;
 using Microsoft.EntityFrameworkCore;
 namespace CodeProject.Server
@@ -23,6 +24,8 @@ namespace CodeProject.Server
 
             builder.Services.AddScoped<OfficeService>()
                 .AddScoped<IProviderService, OfficeService>(x => x.GetService<OfficeService>()!);
+
+            builder.Services.AddAutoMapper(typeof(MappingProfile));
 
             // Add services to the container.
             builder.Services.AddControllers();

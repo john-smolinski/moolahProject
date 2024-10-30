@@ -7,12 +7,12 @@ namespace CodeProject.Server.Models
     [Index(nameof(Name), IsUnique =true)]
     public class Provider
     {
-        public int Id { get; private set; }
+        public int Id { get;  set; }
         
         [StringLength(10)]
-        public string Name { get; private set; }
+        public string Name { get;  set; }
         
-        public ICollection<ToDo> ToDos { get; private set; }
+        public ICollection<ToDo> ToDos { get;  set; }
     }
 #pragma warning restore CS8618
 }
