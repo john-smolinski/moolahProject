@@ -9,11 +9,10 @@ namespace CodeProject.Server.Models.Mappings
         public MappingProfile()
         {
             CreateMap<ToDo, ToDoDto>()
-                .ForMember(dest => dest.PoviderName, opt => opt.MapFrom(src => src.Provider.Name));
+                .ForMember(dest => dest.ProviderName, opt => opt.MapFrom(src => src.Provider.Name));
 
             CreateMap<ToDoDto, ToDo>()
-                .ForMember(dest => dest.Provider, opt => opt.Ignore())
-                .AfterMap((src, dest) => dest.Provider = new Provider { Name = src.PoviderName });
+                .ForMember(dest => dest.Provider, opt => opt.MapFrom(src => new Provider { Name = src.ProviderName }));
         }
     }
 }

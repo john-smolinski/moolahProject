@@ -13,6 +13,8 @@ namespace CodeProject.Server.Models.Entities
         [StringLength(1000)]
         public string Description { get; set; }
 
+        public int ProviderId { get; set; }
+
         public Provider Provider { get; set; }
     }
 #pragma warning restore CS8618

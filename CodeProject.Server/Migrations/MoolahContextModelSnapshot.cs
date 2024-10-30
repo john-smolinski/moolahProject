@@ -80,6 +80,22 @@ namespace CodeProject.Server.Migrations
                     b.HasIndex("ProviderId");
 
                     b.ToTable("ToDos");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Description = "Go to Ladera Ranch Grooming self wash",
+                            Name = "Wash Dog",
+                            ProviderId = 1
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Description = "Find best practices desk optimization and implement",
+                            Name = "Organize Desk",
+                            ProviderId = 2
+                        });
                 });
 
             modelBuilder.Entity("CodeProject.Server.Models.Entities.ToDo", b =>
