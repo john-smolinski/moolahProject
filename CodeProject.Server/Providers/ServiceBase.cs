@@ -14,15 +14,9 @@ namespace CodeProject.Server.Providers
 
         public async Task<ToDo> GetById(int id)
         {
-            try
-            {
-                return await context.ToDos.FirstOrDefaultAsync(x => x.Id == id);
-            }
-            catch (Exception ex)
-            {
-                var message = ex.Message;
-                return null;
-            } 
+#pragma warning disable CS8603 // Possible null reference return.
+            return await context.ToDos.FirstOrDefaultAsync(x => x.Id == id);
+#pragma warning restore CS8603 // Possible null reference return.
         }
 
         public async Task Add(ToDo toDo)

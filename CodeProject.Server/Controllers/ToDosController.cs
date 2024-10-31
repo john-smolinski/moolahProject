@@ -4,6 +4,7 @@ using CodeProject.Server.Models;
 using CodeProject.Server.Models.Dtos;
 using CodeProject.Server.Models.Entities;
 using CodeProject.Server.Providers;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -52,9 +53,53 @@ namespace CodeProject.Server.Controllers
                 });
             }
 
-            // Map the ToDo entity to ToDoDto
             var toDoDto = _mapper.Map<ToDoDto>(toDo);
             return Ok(toDoDto);
+        }
+
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteTask(int id, [FromQuery]string provider)
+        {
+            if (string.IsNullOrEmpty(provider))
+            {
+                return BadRequest(new ErrorResponse
+                {
+                    Message = "Provider name is required",
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Detail = "The provider query parameter was not provided"
+                });
+            }
+
+            if(!await _context.ToDos.AnyAsync(x => x.Id == id && x.Provider.Name == provider))
+            {
+                return NotFound(new ErrorResponse
+                {
+                    Message = "Task not found",
+                    StatusCode = StatusCodes.Status404NotFound,
+                    Detail = $"No task found with Id {id} for provider '{provider}'"
+                });
+            }
+
+            var service = _providerFactory.GetToDoService(provider);
+
+            try
+            {
+                await service.Delete(id);
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ErrorResponse
+                {
+                    Message = "A unhandeled exception occured",
+                    StatusCode = StatusCodes.Status500InternalServerError,
+                    Detail = ex.Message
+                });
+            }
         }
 
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -83,8 +128,6 @@ namespace CodeProject.Server.Controllers
 
             return Ok(toDosDto);
         }
-
-
 
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -123,7 +166,7 @@ namespace CodeProject.Server.Controllers
             {
                 return StatusCode(500, new ErrorResponse
                 {
-                    Message = "An unhandled exception occurred",
+                    Message = "A unhandled exception occurred",
                     StatusCode = 500,
                     Detail = ex.Message
                 });
