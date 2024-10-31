@@ -4,9 +4,7 @@ using CodeProject.Server.Models;
 using CodeProject.Server.Models.Dtos;
 using CodeProject.Server.Models.Entities;
 using CodeProject.Server.Providers;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.DotNet.Scaffolding.Shared;
 using Microsoft.EntityFrameworkCore;
 
 namespace CodeProject.Server.Controllers
@@ -94,7 +92,7 @@ namespace CodeProject.Server.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new ErrorResponse
+                return StatusCode(StatusCodes.Status500InternalServerError, new ErrorResponse
                 {
                     Message = "A unhandeled exception occured",
                     StatusCode = StatusCodes.Status500InternalServerError,
@@ -118,6 +116,8 @@ namespace CodeProject.Server.Controllers
                     Detail = "The provider query parameter was not provided"
                 });
             }
+
+            // JRS: hardcoding update this to get values Providers table
             if (searchParams.Provider != "home" && searchParams.Provider != "office")
             {
                 return BadRequest(new ErrorResponse
@@ -137,7 +137,7 @@ namespace CodeProject.Server.Controllers
                 {
                     Message = "ToDo item not found",
                     StatusCode = StatusCodes.Status404NotFound,
-                    Detail = $"No ToDo found with in search {searchParams.Search} and provider {searchParams.Provider}"
+                    Detail = $"No ToDo items matched the search criteria with provider {searchParams.Provider}"
                 });
             }
             var toDosDto = _mapper.Map<IEnumerable<ToDoDto>>(toDos);
@@ -175,23 +175,70 @@ namespace CodeProject.Server.Controllers
             ToDo createdToDo;
             try
             {
-                // Map to ToDo entity and save it
                 createdToDo = _mapper.Map<ToDo>(toDo);
                 await service.Add(createdToDo);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new ErrorResponse
+                return StatusCode(StatusCodes.Status500InternalServerError, new ErrorResponse
                 {
                     Message = "A unhandled exception occurred",
                     StatusCode = StatusCodes.Status500InternalServerError,
                     Detail = ex.Message
                 });
             }
-
-            // Use the Id of the created ToDo entity in CreatedAtAction
             return CreatedAtAction(nameof(GetToDoById), new { id = createdToDo.Id }, createdToDo);
         }
 
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateToDo(int id, [FromBody] ToDoDto updateToDo)
+        {
+            if (updateToDo == null || id != updateToDo.Id)
+            {
+                return BadRequest(new ErrorResponse
+                {
+                    Message = "Invalid data",
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Detail = "The request body is missing or contains incorrect data."
+                });
+            }
+
+            // get the existing entity
+            var target = await _context.ToDos.FirstOrDefaultAsync(x => 
+                x.Id == updateToDo.Id && 
+                x.Provider.Name == updateToDo.ProviderName);
+
+            if(target == null)
+            {
+                return NotFound(new ErrorResponse
+                {
+                    Message = "ToDo not found",
+                    StatusCode = StatusCodes.Status404NotFound,
+                    Detail = $"ToDo item with id {id} and provider {updateToDo.ProviderName} not found"
+                });
+            }
+
+            try
+            {
+                var service = _providerFactory.GetToDoService(updateToDo.ProviderName);
+                _mapper.Map(updateToDo, target);
+                await service.Update(target);
+
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ErrorResponse
+                {
+                    Message = "A unhandled exception occured",
+                    StatusCode = StatusCodes.Status500InternalServerError,
+                    Detail = ex.Message
+                });
+            }
+        }
     }
 }
