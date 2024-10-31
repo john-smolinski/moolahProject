@@ -6,6 +6,7 @@ using CodeProject.Server.Models.Entities;
 using CodeProject.Server.Providers;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.DotNet.Scaffolding.Shared;
 using Microsoft.EntityFrameworkCore;
 
 namespace CodeProject.Server.Controllers
@@ -35,7 +36,7 @@ namespace CodeProject.Server.Controllers
                 return BadRequest(new ErrorResponse
                 {
                     Message = "Provider name is required",
-                    StatusCode = 400,
+                    StatusCode = StatusCodes.Status400BadRequest,
                     Detail = "The provider query parameter was not provided"
                 });
             }
@@ -48,7 +49,7 @@ namespace CodeProject.Server.Controllers
                 return NotFound(new ErrorResponse
                 {
                     Message = "ToDo item not found",
-                    StatusCode = 404,
+                    StatusCode = StatusCodes.Status404NotFound,
                     Detail = $"No ToDo found with Id = {id} and provider {provider}"
                 });
             }
@@ -110,11 +111,21 @@ namespace CodeProject.Server.Controllers
         {
             if (searchParams == null || string.IsNullOrEmpty(searchParams.Provider))
             {
-                return BadRequest();
+                return BadRequest(new ErrorResponse
+                {
+                    Message = "Provider name is required",
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Detail = "The provider query parameter was not provided"
+                });
             }
             if (searchParams.Provider != "home" && searchParams.Provider != "office")
             {
-                return BadRequest();
+                return BadRequest(new ErrorResponse
+                {
+                    Message = $"Invalid provider {searchParams.Provider}",
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Detail = "The provider query parameter was not provided"
+                });
             }
 
             var service = _providerFactory.GetToDoService(searchParams.Provider);
@@ -122,7 +133,12 @@ namespace CodeProject.Server.Controllers
 
             if (toDos == null || !toDos.Any())
             {
-                return NotFound();
+                return NotFound(new ErrorResponse
+                {
+                    Message = "ToDo item not found",
+                    StatusCode = StatusCodes.Status404NotFound,
+                    Detail = $"No ToDo found with in search {searchParams.Search} and provider {searchParams.Provider}"
+                });
             }
             var toDosDto = _mapper.Map<IEnumerable<ToDoDto>>(toDos);
 
@@ -131,6 +147,7 @@ namespace CodeProject.Server.Controllers
 
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPost]
         public async Task<ActionResult<ToDoDto>> PostToDo([FromBody] ToDoDto toDo)
         {
@@ -139,7 +156,7 @@ namespace CodeProject.Server.Controllers
                 return BadRequest(new ErrorResponse
                 {
                     Message = "Invalid request",
-                    StatusCode = 400,
+                    StatusCode = StatusCodes.Status400BadRequest,
                     Detail = "Request body null"
                 });
             }
@@ -148,7 +165,7 @@ namespace CodeProject.Server.Controllers
                 return BadRequest(new ErrorResponse
                 {
                     Message = "Invalid request",
-                    StatusCode = 400,
+                    StatusCode = StatusCodes.Status400BadRequest,
                     Detail = "Name and Description required"
                 });
             }
@@ -167,7 +184,7 @@ namespace CodeProject.Server.Controllers
                 return StatusCode(500, new ErrorResponse
                 {
                     Message = "A unhandled exception occurred",
-                    StatusCode = 500,
+                    StatusCode = StatusCodes.Status500InternalServerError,
                     Detail = ex.Message
                 });
             }
