@@ -5,6 +5,7 @@ using CodeProject.Server.Models.Dtos;
 using CodeProject.Server.Models.Entities;
 using CodeProject.Server.Providers;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace CodeProject.Server.Controllers
 {
@@ -21,6 +22,39 @@ namespace CodeProject.Server.Controllers
             _providerFactory = providerFactory;
             _context = context;
             _mapper = mapper;
+        }
+
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [HttpGet("{id}")]
+        public async Task<ActionResult<ToDoDto>> GetToDoById(int id, [FromQuery] string provider)
+        {
+            if (string.IsNullOrEmpty(provider))
+            {
+                return BadRequest(new ErrorResponse
+                {
+                    Message = "Provider name is required",
+                    StatusCode = 400,
+                    Detail = "The provider query parameter was not provided"
+                });
+            }
+
+            var service = _providerFactory.GetToDoService(provider);
+            var toDo = await service.GetById(id);
+
+            if (toDo == null)
+            {
+                return NotFound(new ErrorResponse
+                {
+                    Message = "ToDo item not found",
+                    StatusCode = 404,
+                    Detail = $"No ToDo found with Id = {id} and provider {provider}"
+                });
+            }
+
+            // Map the ToDo entity to ToDoDto
+            var toDoDto = _mapper.Map<ToDoDto>(toDo);
+            return Ok(toDoDto);
         }
 
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -50,14 +84,14 @@ namespace CodeProject.Server.Controllers
             return Ok(toDosDto);
         }
 
-        
+
 
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [HttpPost]
-        public async Task<ActionResult<ToDo>> PostToDo([FromBody] ToDo toDo)
+        public async Task<ActionResult<ToDoDto>> PostToDo([FromBody] ToDoDto toDo)
         {
-            if(toDo == null)
+            if (toDo == null)
             {
                 return BadRequest(new ErrorResponse
                 {
@@ -66,7 +100,7 @@ namespace CodeProject.Server.Controllers
                     Detail = "Request body null"
                 });
             }
-            if(string.IsNullOrEmpty(toDo.Name) || string.IsNullOrEmpty(toDo.Description))
+            if (string.IsNullOrEmpty(toDo.Name) || string.IsNullOrEmpty(toDo.Description))
             {
                 return BadRequest(new ErrorResponse
                 {
@@ -75,22 +109,29 @@ namespace CodeProject.Server.Controllers
                     Detail = "Name and Description required"
                 });
             }
-            var service = _providerFactory.GetToDoService(toDo.Provider.Name);
 
+            var service = _providerFactory.GetToDoService(toDo.ProviderName);
+
+            ToDo createdToDo;
             try
             {
-                await service.Add(toDo);
+                // Map to ToDo entity and save it
+                createdToDo = _mapper.Map<ToDo>(toDo);
+                await service.Add(createdToDo);
             }
             catch (Exception ex)
             {
                 return StatusCode(500, new ErrorResponse
                 {
-                    Message = "A unhandled exception occurred",
+                    Message = "An unhandled exception occurred",
                     StatusCode = 500,
                     Detail = ex.Message
                 });
             }
-            return CreatedAtAction("GetToDo", new { id = toDo.Id }, toDo);
+
+            // Use the Id of the created ToDo entity in CreatedAtAction
+            return CreatedAtAction(nameof(GetToDoById), new { id = createdToDo.Id }, createdToDo);
         }
+
     }
 }

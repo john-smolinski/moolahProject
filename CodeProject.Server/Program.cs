@@ -1,8 +1,8 @@
-
 using CodeProject.Server.Context;
 using CodeProject.Server.Models.Mappings;
 using CodeProject.Server.Providers;
 using Microsoft.EntityFrameworkCore;
+
 namespace CodeProject.Server
 {
     public class Program
@@ -25,7 +25,17 @@ namespace CodeProject.Server
             builder.Services.AddScoped<OfficeService>()
                 .AddScoped<IProviderService, OfficeService>(x => x.GetService<OfficeService>()!);
 
-            builder.Services.AddAutoMapper(typeof(MappingProfile));
+            builder.Services.AddScoped<IProviderMapService, ProviderMapService>();
+
+            builder.Services.AddSingleton<MappingProfile>(serviceProvider => new MappingProfile(serviceProvider));
+
+            builder.Services.AddAutoMapper(cfg =>
+            {
+                // Add MappingProfile directly to AutoMapper configuration
+                var serviceProvider = builder.Services.BuildServiceProvider();
+                var mappingProfile = serviceProvider.GetRequiredService<MappingProfile>();
+                cfg.AddProfile(mappingProfile);
+            });
 
             // Add services to the container.
             builder.Services.AddControllers();
@@ -45,12 +55,8 @@ namespace CodeProject.Server
             }
 
             app.UseHttpsRedirection();
-
             app.UseAuthorization();
-
-
             app.MapControllers();
-
             app.MapFallbackToFile("/index.html");
 
             app.Run();

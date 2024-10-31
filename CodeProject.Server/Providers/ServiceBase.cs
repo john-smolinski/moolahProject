@@ -12,6 +12,19 @@ namespace CodeProject.Server.Providers
 
         public abstract Task<List<ToDo>> Search(ToDoSearchParams searchParams);
 
+        public async Task<ToDo> GetById(int id)
+        {
+            try
+            {
+                return await context.ToDos.FirstOrDefaultAsync(x => x.Id == id);
+            }
+            catch (Exception ex)
+            {
+                var message = ex.Message;
+                return null;
+            } 
+        }
+
         public async Task Add(ToDo toDo)
         {
             context.ToDos.Add(toDo);
@@ -37,6 +50,5 @@ namespace CodeProject.Server.Providers
         {
             return context.ToDos.Any(e => e.Id == id);
         }
-
     }
 }

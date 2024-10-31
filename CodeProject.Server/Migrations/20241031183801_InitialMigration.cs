@@ -55,15 +55,6 @@ namespace CodeProject.Server.Migrations
                     { 2, "office" }
                 });
 
-            migrationBuilder.InsertData(
-                table: "ToDos",
-                columns: new[] { "Id", "Description", "Name", "ProviderId" },
-                values: new object[,]
-                {
-                    { 1, "Go to Ladera Ranch Grooming self wash", "Wash Dog", 1 },
-                    { 2, "Find best practices desk optimization and implement", "Organize Desk", 2 }
-                });
-
             migrationBuilder.CreateIndex(
                 name: "IX_Providers_Name",
                 table: "Providers",

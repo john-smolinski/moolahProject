@@ -18,11 +18,12 @@ namespace CodeProject.Server.Providers
                 return _serviceProvider.GetService(typeof(HomeService)) as IProviderService
                     ?? throw new InvalidOperationException("HomeService is not registered");
             }
-            else
+            else if(providerName.Equals("office", StringComparison.OrdinalIgnoreCase))
             {
                 return _serviceProvider.GetService(typeof(OfficeService)) as IProviderService
                     ?? throw new InvalidOperationException("OfficeService is not registered");
             }
+            throw new ArgumentException("Invalid provider name");
         }
     }
 }
