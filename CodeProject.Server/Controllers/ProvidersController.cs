@@ -1,5 +1,6 @@
 ﻿using CodeProject.Server.Context;
 using CodeProject.Server.Models;
+using CodeProject.Server.Models.Dtos;
 using CodeProject.Server.Models.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -19,11 +20,12 @@ namespace CodeProject.Server.Controllers
 
         [ProducesResponseType(StatusCodes.Status200OK)]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Provider>>> GetAll()
+        public async Task<ActionResult<IEnumerable<ProviderDto>>> GetAll()
         {
             try
             {
-                var result = await _context.Providers.ToListAsync();
+                var result = await _context.Providers
+                    .Select(x => new ProviderDto { Id = x.Id, Name= x.Name } ).ToListAsync();
                 return Ok(result);
             }
             catch (Exception ex)
