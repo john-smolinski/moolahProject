@@ -15,7 +15,7 @@ export default {
     return apiClient.post('/todos', toDo);
   },
   updateToDo(id, toDo) {
-    return apiClient.put(`/todos/${id}`, toDo);
+    return apiClient.put(`/todos/${id}`, toDo); 
   },
   deleteToDo(id, provider) {
     return apiClient.delete(`/todos/${id}`, {
