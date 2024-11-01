@@ -37,12 +37,26 @@ namespace CodeProject.Server
                 cfg.AddProfile(mappingProfile);
             });
 
+            builder.Services.AddCors(opt =>
+            {
+                opt.AddPolicy("AllowVueApp",
+                    builder =>
+                    {
+                        builder.WithOrigins("https://localhost:5173")
+                            .AllowAnyHeader()
+                            .AllowAnyMethod();
+                    });
+            });
+
+
             // Add services to the container.
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
             var app = builder.Build();
+
+            app.UseCors("AllowVueApp");
 
             app.UseDefaultFiles();
             app.UseStaticFiles();

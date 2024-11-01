@@ -1,49 +1,40 @@
-<script setup>
-import HelloWorld from './components/HelloWorld.vue'
-import TheWelcome from './components/TheWelcome.vue'
-</script>
-
 <template>
-  <header>
-    <img alt="Vue logo" class="logo" src="./assets/logo.svg" width="125" height="125" />
-
-    <div class="wrapper">
-      <h3>hello world</h3>
-      <HelloWorld msg="You did it!" />
+  <div id="app">
+    <!-- Provider Selection Dropdown -->
+    <div v-if="!selectedProvider">
+      <h2>Select a Provider</h2>
+      <Providers @provider-selected="setProvider" />
     </div>
-  </header>
 
-  <main>
-    <h3>the-welcome</h3>
-    <TheWelcome />
-  </main>
+    <!-- ToDos Component with Search Box, displayed only after provider selection -->
+    <div v-else>
+      <ToDos :provider="selectedProvider" />
+    </div>
+  </div>
 </template>
 
-<style scoped>
-header {
-  line-height: 1.5;
-}
+<script>
+  import Providers from './components/Providers.vue';
+  import ToDos from './components/ToDos.vue';
 
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
-}
+  export default {
+    components: {
+      Providers,
+      ToDos
+    },
+    data() {
+      return {
+        selectedProvider: ''
+      };
+    },
+    methods: {
+      setProvider(provider) {
+        this.selectedProvider = provider;
+      }
+    }
+  };
+</script>
 
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
-}
+<style>
+  /* Add your styling here if needed */
 </style>
